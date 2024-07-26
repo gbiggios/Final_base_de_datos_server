@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Miembros</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Orquesta</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/index.html">Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/members.html">Miembros</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/ensayos.html">Ensayos</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Gestión de Miembros</h1>
+        
+        <!-- Formulario para crear miembro -->
+        <h2>Crear Miembro</h2>
+        <form id="createMemberForm">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="rut">RUT</label>
+                    <input type="text" class="form-control" id="rut" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" class="form-control" id="nombre" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="apellidoPaterno">Apellido Paterno</label>
+                    <input type="text" class="form-control" id="apellidoPaterno" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="apellidoMaterno">Apellido Materno</label>
+                    <input type="text" class="form-control" id="apellidoMaterno" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="instrumento">Instrumento</label>
+                    <input type="text" class="form-control" id="instrumento" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="correo">Correo</label>
+                    <input type="email" class="form-control" id="correo" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="contacto">Contacto</label>
+                    <input type="text" class="form-control" id="contacto" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="tipoUsuario">Tipo de Usuario</label>
+                    <select class="form-control" id="tipoUsuario" required>
+                        <option value="presidente">Presidente</option>
+                        <option value="directiva">Directiva</option>
+                        <option value="comite">Comité</option>
+                        <option value="miembro">Miembro</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="comite">Comité</label>
+                    <input type="text" class="form-control" id="comite" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="activo">Activo</label>
+                    <select class="form-control" id="activo" required>
+                        <option value="true">Sí</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Crear Miembro</button>
+        </form>
+
+        <hr class="my-5">
+
+        <!-- Tabla de miembros -->
+        <h2>Miembros</h2>
+        <table class="table table-bordered" id="membersTable">
+            <thead>
+                <tr>
+                    <th>RUT</th>
+                    <th>Nombre</th>
+                    <th>Apellido Paterno</th>
+                    <th>Apellido Materno</th>
+                    <th>Instrumento</th>
+                    <th>Correo</th>
+                    <th>Contacto</th>
+                    <th>Tipo de Usuario</th>
+                    <th>Comité</th>
+                    <th>Activo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Aquí se cargarán los miembros -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Función para obtener y mostrar los miembros
+            function getMembers() {
+                axios.get('/members')
+                    .then(response => {
+                        const members = response.data.members;
+                        const tbody = document.querySelector('#membersTable tbody');
+                        tbody.innerHTML = '';
+                        members.forEach(member => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${member.rut}</td>
+                                <td>${member.nombre}</td>
+                                <td>${member.apellidoPaterno}</td>
+                                <td>${member.apellidoMaterno}</td>
+                                <td>${member.instrumento}</td>
+                                <td>${member.correo}</td>
+                                <td>${member.contacto}</td>
+                                <td>${member.tipoUsuario}</td>
+                                <td>${member.comite}</td>
+                                <td>${member.activo ? 'Sí' : 'No'}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm editBtn" data-id="${member._id}">Editar</button>
+                                    <button class="btn btn-danger btn-sm deleteBtn" data-id="${member._id}">Eliminar</button>
+                                </td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+
+                        // Añadir event listeners a los botones de editar
+                        document.querySelectorAll('.editBtn').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const memberId = this.getAttribute('data-id');
+                                window.location.href = `/editMember.html?memberID=${memberId}`;
+                            });
+                        });
+
+                        // Añadir event listeners a los botones de eliminar
+                        document.querySelectorAll('.deleteBtn').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const memberId = this.getAttribute('data-id');
+                                deleteMember(memberId);
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error al obtener miembros:', error);
+                    });
+            }
+
+            // Función para crear un miembro
+            document.querySelector('#createMemberForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const newMember = {
+                    rut: document.querySelector('#rut').value,
+                    nombre: document.querySelector('#nombre').value,
+                    apellidoPaterno: document.querySelector('#apellidoPaterno').value,
+                    apellidoMaterno: document.querySelector('#apellidoMaterno').value,
+                    instrumento: document.querySelector('#instrumento').value,
+                    correo: document.querySelector('#correo').value,
+                    contacto: document.querySelector('#contacto').value,
+                    tipoUsuario: document.querySelector('#tipoUsuario').value,
+                    comite: document.querySelector('#comite').value,
+                    activo: document.querySelector('#activo').value === 'true'
+                };
+                axios.post('/members/create', newMember)
+                    .then(response => {
+                        console.log('Miembro creado:', response.data);
+                        getMembers();
+                    })
+                    .catch(error => {
+                        console.error('Error al crear miembro:', error);
+                    });
+            });
+
+            // Función para eliminar un miembro
+            function deleteMember(memberId) {
+                axios.delete(`/members/delete?memberID=${memberId}`)
+                    .then(response => {
+                        console.log('Miembro eliminado:', response.data);
+                        getMembers();
+                    })
+                    .catch(error => {
+                        console.error('Error al eliminar miembro:', error);
+                    });
+            }
+
+            // Obtener y mostrar los miembros al cargar la página
+            getMembers();
+        });
+    </script>
+</body>
+</html>

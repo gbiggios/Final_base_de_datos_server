@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Ensayos</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .asistencia-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .asistencia-row label {
+            flex: 1;
+        }
+        .asistencia-row input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .asistencia-row .justificacion {
+            flex: 2;
+            margin-left: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Orquesta</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/index.html">Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/members.html">Miembros</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/ensayos.html">Ensayos</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Gestión de Ensayos</h1>
+
+        <!-- Formulario para crear ensayo -->
+        <h2>Crear Ensayo</h2>
+        <form id="createEnsayoForm">
+            <div class="form-group">
+                <label for="fecha">Fecha</label>
+                <input type="date" class="form-control" id="fecha" required>
+            </div>
+            <div class="form-group">
+                <label for="objetivo">Objetivo</label>
+                <input type="text" class="form-control" id="objetivo" required>
+            </div>
+            <div class="form-group">
+                <label>Asistencia</label>
+                <div id="asistencia">
+                    <!-- Aquí se cargarán los miembros -->
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Crear Ensayo</button>
+        </form>
+
+        <hr class="my-5">
+
+        <!-- Tabla de ensayos -->
+        <h2>Ensayos</h2>
+        <table class="table table-bordered" id="ensayosTable">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Objetivo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Aquí se cargarán los ensayos -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Función para obtener y mostrar los miembros activos
+            function getMiembrosActivos() {
+                axios.get('/members')
+                    .then(response => {
+                        const miembros = response.data.members.filter(member => member.activo);
+                        const asistenciaDiv = document.querySelector('#asistencia');
+                        asistenciaDiv.innerHTML = '';
+                        miembros.forEach(miembro => {
+                            const miembroDiv = document.createElement('div');
+                            miembroDiv.classList.add('asistencia-row');
+                            miembroDiv.innerHTML = `
+                                <label>
+                                    ${miembro.nombre} ${miembro.apellidoPaterno} ${miembro.apellidoMaterno}
+                                </label>
+                                <input type="checkbox" class="present-checkbox" data-id="${miembro._id}">
+                                <input type="text" class="form-control justificacion" data-id="${miembro._id}" placeholder="Justificación">
+                            `;
+                            asistenciaDiv.appendChild(miembroDiv);
+                        });
+
+                        // Añadir event listeners a los checkboxes
+                        document.querySelectorAll('.present-checkbox').forEach(checkbox => {
+                            checkbox.addEventListener('change', function() {
+                                const justificacionInput = document.querySelector(`.justificacion[data-id="${this.getAttribute('data-id')}"]`);
+                                if (this.checked) {
+                                    justificacionInput.style.display = 'none';
+                                } else {
+                                    justificacionInput.style.display = 'block';
+                                }
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error al obtener miembros:', error);
+                    });
+            }
+
+            // Obtener y mostrar los miembros activos al cargar la página
+            getMiembrosActivos();
+
+            // Función para obtener y mostrar los ensayos
+            function getEnsayos() {
+                axios.get('/ensayos')
+                    .then(response => {
+                        const ensayos = response.data.ensayos;
+                        const tbody = document.querySelector('#ensayosTable tbody');
+                        tbody.innerHTML = '';
+                        ensayos.forEach(ensayo => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${new Date(ensayo.fecha).toLocaleDateString()}</td>
+                                <td>${ensayo.objetivo}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm editBtn" data-id="${ensayo._id}">Editar</button>
+                                    <button class="btn btn-danger btn-sm deleteBtn" data-id="${ensayo._id}">Eliminar</button>
+                                </td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+
+                        // Añadir event listeners a los botones de editar
+                        document.querySelectorAll('.editBtn').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const ensayoId = this.getAttribute('data-id');
+                                window.location.href = `/editEnsayo.html?ensayoID=${ensayoId}`;
+                            });
+                        });
+
+                        // Añadir event listeners a los botones de eliminar
+                        document.querySelectorAll('.deleteBtn').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const ensayoId = this.getAttribute('data-id');
+                                deleteEnsayo(ensayoId);
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error al obtener ensayos:', error);
+                    });
+            }
+
+            // Función para crear un ensayo
+            document.querySelector('#createEnsayoForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const asistencia = [];
+                document.querySelectorAll('.present-checkbox').forEach(checkbox => {
+                    const miembroID = checkbox.getAttribute('data-id');
+                    const presente = checkbox.checked;
+                    const justificacion = presente ? null : document.querySelector(`.justificacion[data-id="${miembroID}"]`).value;
+                    asistencia.push({ miembroID, presente, justificacion });
+                });
+
+                const newEnsayo = {
+                    fecha: document.querySelector('#fecha').value,
+                    objetivo: document.querySelector('#objetivo').value,
+                    asistencia: asistencia
+                };
+
+                axios.post('/ensayos/create', newEnsayo)
+                    .then(response => {
+                        console.log('Ensayo creado:', response.data);
+                        getEnsayos();
+                    })
+                    .catch(error => {
+                        console.error('Error al crear ensayo:', error);
+                    });
+            });
+
+            // Función para eliminar un ensayo
+            function deleteEnsayo(ensayoId) {
+                axios.delete(`/ensayos/delete?ensayoID=${ensayoId}`)
+                    .then(response => {
+                        console.log('Ensayo eliminado:', response.data);
+                        getEnsayos();
+                    })
+                    .catch(error => {
+                        console.error('Error al eliminar ensayo:', error);
+                    });
+            }
+
+            // Obtener y mostrar los ensayos al cargar la página
+            getEnsayos();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Ensayos</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .asistencia-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .asistencia-row label {
+            flex: 1;
+        }
+        .asistencia-row input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .asistencia-row .justificacion {
+            flex: 2;
+            margin-left: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Orquesta</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/members.html">Miembros</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/ensayos.html">Ensayos</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Porcentaje de Asistencia de Miembros Activos</h1>
+        <div id="asistencia">
+            <!-- Aquí se cargarán los porcentajes de asistencia -->
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Función para obtener los datos de asistencia y calcular los porcentajes
+            function getPorcentajesAsistencia() {
+                axios.get('/members')
+                    .then(response => {
+                        const miembros = response.data.members.filter(member => member.activo);
+                        const asistenciaDiv = document.querySelector('#asistencia');
+                        asistenciaDiv.innerHTML = '';
+
+                        miembros.forEach(miembro => {
+                            axios.get(`/ensayos/by-member/${miembro._id}`)
+                                .then(ensayoResponse => {
+                                    const ensayos = ensayoResponse.data.ensayos;
+                                    const totalEnsayos = ensayos.length;
+                                    const totalAsistencias = ensayos.filter(ensayo => ensayo.asistencia.some(a => a.miembroID === miembro._id && a.presente)).length;
+                                    const porcentajeAsistencia = totalEnsayos > 0 ? (totalAsistencias / totalEnsayos * 100).toFixed(2) : 0;
+
+                                    const miembroDiv = document.createElement('div');
+                                    miembroDiv.classList.add('asistencia-row');
+                                    miembroDiv.innerHTML = `
+                                        <label>
+                                            ${miembro.nombre} ${miembro.apellidoPaterno} ${miembro.apellidoMaterno}: ${porcentajeAsistencia}%
+                                        </label>
+                                    `;
+                                    asistenciaDiv.appendChild(miembroDiv);
+                                })
+                                .catch(error => {
+                                    console.error('Error al obtener ensayos del miembro:', error);
+                                });
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error al obtener miembros:', error);
+                    });
+            }
+
+            // Obtener y mostrar los porcentajes de asistencia al cargar la página
+            getPorcentajesAsistencia();
+        });
+    </script>
+</body>
+</html>

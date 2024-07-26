@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Eventos</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Gestión de Eventos</h1>
+
+        <!-- Formulario para crear un evento -->
+        <div class="card mt-4">
+            <div class="card-header">Crear Evento</div>
+            <div class="card-body">
+                <form id="createEventoForm">
+                    <div class="form-group">
+                        <label for="fecha">Fecha</label>
+                        <input type="date" class="form-control" id="fecha" name="fecha" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="descripcion">Descripción</label>
+                        <input type="text" class="form-control" id="descripcion" name="descripcion" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lugar">Lugar</label>
+                        <input type="text" class="form-control" id="lugar" name="lugar" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tipo">Tipo de Evento</label>
+                        <select class="form-control" id="tipo" name="tipo" required>
+                            <option value="concierto">Concierto</option>
+                            <option value="cumpleaños">Cumpleaños</option>
+                            <option value="charla">Charla</option>
+                            <option value="master class">Master Class</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Crear Evento</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabla para mostrar los eventos -->
+        <div class="card mt-4">
+            <div class="card-header">Lista de Eventos</div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Descripción</th>
+                            <th>Lugar</th>
+                            <th>Tipo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="eventosTableBody">
+                        <!-- Aquí se insertarán las filas de los eventos -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Formulario para actualizar un evento -->
+        <div class="card mt-4">
+            <div class="card-header">Actualizar Evento</div>
+            <div class="card-body">
+                <form id="updateEventoForm">
+                    <div class="form-group">
+                        <label for="updateEventoID">ID del Evento</label>
+                        <input type="text" class="form-control" id="updateEventoID" name="eventoID" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="updateFecha">Fecha</label>
+                        <input type="date" class="form-control" id="updateFecha" name="fecha" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="updateDescripcion">Descripción</label>
+                        <input type="text" class="form-control" id="updateDescripcion" name="descripcion" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="updateLugar">Lugar</label>
+                        <input type="text" class="form-control" id="updateLugar" name="lugar" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="updateTipo">Tipo de Evento</label>
+                        <select class="form-control" id="updateTipo" name="tipo" required>
+                            <option value="concierto">Concierto</option>
+                            <option value="cumpleaños">Cumpleaños</option>
+                            <option value="charla">Charla</option>
+                            <option value="master class">Master Class</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Actualizar Evento</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Formulario para eliminar un evento -->
+        <div class="card mt-4">
+            <div class="card-header">Eliminar Evento</div>
+            <div class="card-body">
+                <form id="deleteEventoForm">
+                    <div class="form-group">
+                        <label for="deleteEventoID">ID del Evento</label>
+                        <input type="text" class="form-control" id="deleteEventoID" name="eventoID" required>
+                    </div>
+                    <button type="submit" class="btn btn-danger">Eliminar Evento</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiUrl = 'http://localhost:3000/api/eventos';
+
+        document.getElementById('createEventoForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const data = {
+                fecha: document.getElementById('fecha').value,
+                descripcion: document.getElementById('descripcion').value,
+                lugar: document.getElementById('lugar').value,
+                tipo: document.getElementById('tipo').value,
+            };
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            console.log(result);
+            loadEventos();
+        });
+
+        document.getElementById('updateEventoForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const eventoID = document.getElementById('updateEventoID').value;
+            const data = {
+                fecha: document.getElementById('updateFecha').value,
+                descripcion: document.getElementById('updateDescripcion').value,
+                lugar: document.getElementById('updateLugar').value,
+                tipo: document.getElementById('updateTipo').value,
+            };
+            const response = await fetch(`${apiUrl}/${eventoID}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            console.log(result);
+            loadEventos();
+        });
+
+        document.getElementById('deleteEventoForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const eventoID = document.getElementById('deleteEventoID').value;
+            const response = await fetch(`${apiUrl}/${eventoID}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const result = await response.json();
+            console.log(result);
+            loadEventos();
+        });
+
+        async function loadEventos() {
+            const response = await fetch(apiUrl);
+            const eventos = await response.json();
+            const eventosTableBody = document.getElementById('eventosTableBody');
+            eventosTableBody.innerHTML = '';
+            eventos.forEach(evento => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${evento._id}</td>
+                    <td>${new Date(evento.fecha).toLocaleDateString()}</td>
+                    <td>${evento.descripcion}</td>
+                    <td>${evento.lugar}</td>
+                    <td>${evento.tipo}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="editEvento('${evento._id}')">Editar</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteEvento('${evento._id}')">Eliminar</button>
+                    </td>
+                `;
+                eventosTableBody.appendChild(row);
+            });
+        }
+
+        function editEvento(eventoID) {
+            document.getElementById('updateEventoID').value = eventoID;
+            const evento = document.querySelector(`tr[data-id="${eventoID}"]`);
+            document.getElementById('updateFecha').value = evento.children[1].innerText;
+            document.getElementById('updateDescripcion').value = evento.children[2].innerText;
+            document.getElementById('updateLugar').value = evento.children[3].innerText;
+            document.getElementById('updateTipo').value = evento.children[4].innerText.toLowerCase();
+        }
+
+        function deleteEvento(eventoID) {
+            document.getElementById('deleteEventoID').value = eventoID;
+        }
+
+        loadEventos();
+    </script>
+</body>
+</html>
